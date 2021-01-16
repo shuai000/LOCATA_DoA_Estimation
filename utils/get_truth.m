@@ -88,9 +88,9 @@ if is_dev
             for t = 1 : Ns
                 % Apply rotation / translation of array to source
                 R = squeeze(truth.array.rotation(:,t,:));
-                p = truth.array.position(:,t);
-                h = truth.source.(src_names{src_idx}).position(:,t);
-                v = R'*(h - p);
+                p = truth.array.position(:,t); % the reference point of the array (Shuai, global, opitrack)
+                h = truth.source.(src_names{src_idx}).position(:,t); % location of the source (global, opitrack)
+                v = R'*(h - p); % transformed to array local coordinates (Shuai)
                 
                 % Spherical position
                 % NOTE: azimuth = 0 deg is defined along the positive y-axis,
