@@ -1,37 +1,31 @@
-%%% Localization
-%%% 06/01/2021
+%%% Script for audio soucrce Localization
+%%% TDoA approach (time delay is estimated by Parametric LAP algorithm)
+%%% segment-based apporach, modified on 27/01/2021
 %%% Shuai SUN
 clear all;
 close all;
 clc;
 
-array_dir = 'D:\LOCATA\dev\task3\recording3\dicit';
+array_dir = 'D:\LOCATA\dev\task3\recording2\dicit';
 this_array = 'dicit';
-field = 'talker1';
+field = 'talker2';
 
-label_dir = 'D:\LOCATA\dev\task3\recording3\dicit\VAD_dicit_talker1.txt';
+label_dir = 'D:\LOCATA\dev\task3\recording2\dicit\VAD_dicit_talker2.txt';
 file_t = importdata(label_dir);
 label = file_t.data;
 
-% % addpath C:\Users\61450\OneDrive - RMIT University\Documents\Parametric_LAP -- MicrophoneArray';
-% audio_data = importdata('D:\LOCATA\dev\task3\recording1\dicit\audio_array_dicit.wav');
 % recording2, talker2
 % recording1, talker5
 % recording3, talker1
 
-% Select the array sensor index
-m1 = 5;
-m2 = 6;
-m3 = 7;
-m4 = 9;
+% select the sensor pair index
+% index_all = [1 2; 5 6; 5 7; 6 7; 13 15; 14 15];
+index_all = [1 2; 5 6; 5 7; 6 7; 13 15; 14 15];  % 7 9 error 15
 
-% index_all = [m1 m2; m1 m3; m1 m4; m2 m3; m2 m4; m3 m4];
-% index_all = [1 2; 5 6; 5 7; 6 7; 4 5; 11 12];
-index_all = [1 2; 5 6; 5 7; 6 7; 13 15; 14 15];
 
 [true_delay, timestamps, audio_array, source, mic_positions, target, h, R, azimuth_truth, elevation_truth] = main2(array_dir, this_array, index_all, field);
 
-delay_max = max(max(true_delay));
+delay_max = max(max(true_delay)); % compute the possible true maximum delay
 
 source_audio = source.data.(field);
 
@@ -76,27 +70,7 @@ end
 xlabel('Time, $t$, [s]', 'interpreter', 'latex');
 ylabel('Ground Truth time', 'interpreter', 'latex');
 
-%% This is to contatecate the segment data
-% Na = sum(label);
-% label_data = zeros(1, Na);
-% label_index = zeros(1, Na);
-% counter = 0;
-% for i=1:length(source_audio)
-%     if label(i) == 1
-%         counter = counter + 1;
-%         label_data(counter) = source_audio(i);
-%         label_index(counter) = i;
-%     end
-% end
-%
-% t_label = t(label_index);  % the corresponding time for the labelled activity signal
-% data = data(label_index, :); % extract the labelled data
-%
-% figure;
-% plot(t_label, label_data, 'r.'); hold on;
-% plot(t, source_audio, 'b');
-% legend('labelled signal', 'original signal');
-% xlabel('time, t (seconds)');
+
 
 Ns = length(timestamps);
 index_array = [];
@@ -115,7 +89,7 @@ time_array_estimation = t(index_array);
 
 %% Parameters for delay estimation:
 scale = 6;  % test scales,
-window = 1000;  % large window size? during window constant delay, 4000
+window = 4000;  % large window size? during window constant delay, 4000
 orders = 2:10;  % test order, which one it picks, remove 1
 
 N_segment = length(data_segment);
@@ -225,7 +199,7 @@ for k=1:N_segment
     
     for i=1:Ne
         estimated_delay = delay_estimate{k}(meta_segment(k).local_index(i), :);
-        % estimated_delay = true_delay(:, i)';
+%         estimated_delay = true_delay(:, meta_segment(k).true_index(i))';
         [x, y, z, error_min] = location_search2(estimated_delay, mic_positions, index_all);
         position_estimation{k}(:, i) = [x, y, z]';
         [current_azimuth(i), current_elevation(i), current_r(i)] = find_angle(h, R, position_estimation{k}(:, i));
