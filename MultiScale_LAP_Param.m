@@ -1,5 +1,5 @@
 function [d_est,chosen_order,AIC] = MultiScale_LAP_Param(x1,x2,Level_Num,Min_Wind,Model_Order_array)
-%% Implementation of a multi-scale framework for the LAP algorithm with parametric model fitting 
+%% Implementation of a multi-scale framework for the LAP algorithm with parametric model fitting
 % The filter basis used in the LAP algorithm spans the derivatives of a Gaussian filter. Level_Num determines the number of scales used.
 %
 % inputs:   x1                  - input signal 1, Sig_Num (number of signals) by s1 array
@@ -44,9 +44,10 @@ end
 LN = Level_Num+1;
 amp_array = 2.^(linspace(Level_Num,1,floor(LN)));
 
+index_array = cell(1, LN);
 % Estimate the delay
 for l = 1:LN
-    amp_size = amp_array(l);                    % Define scale factor  
+    amp_size = amp_array(l);                    % Define scale factor
     Basis_Set = loadbasis(amp_size);            % Load Filter Basis
     
     if l == 1 && sum(d_est) == 0
@@ -55,8 +56,8 @@ for l = 1:LN
     else
         for index_sig = 1:Sig_Num
             % Using current delay estimate warp the electrodes in x2 closer to the electrodes in x1
-            % Shift value needs to be imaginary to shift along x axis 
-            x2_shift(index_sig,:) = imshift(x2(index_sig,:),-1i.*d_est); 
+            % Shift value needs to be imaginary to shift along x axis
+            x2_shift(index_sig,:) = imshift(x2(index_sig,:),-1i.*d_est);
             
             % Sort out edge effects
             mask = logical((n + d_est)<=N & (n + d_est)>= 1);
@@ -71,10 +72,12 @@ for l = 1:LN
     % Remove nans using inpainting
     index1 = (round(wind)+1):(N-round(wind));
     d_clean = [d_raw(index1(1)).*ones(1,(index1(1)-1)), d_raw(index1), d_raw(index1(end)).*ones(1,(index1(1)-1))];
-        
+    
     % index of points to be used in the fitting:
     index1 = logical((round(wind)+1) <= (1:N) & (N-round(wind)) >= (1:N)).*~isnan(d_clean);
     % alter index1
+    
+    index_array{l} = index1;
     
     % Update d_est:
     d_est = d_est + d_clean;    % Add estimated flow to the previous flow estimate
@@ -88,11 +91,32 @@ for l = 1:LN
         d_fit(poly_order1,:) = (vec(:,1:poly_order)*(vec(index1==1,1:poly_order)\d_est(index1==1).')).';
         
         % Calculate information theoretic critera:
-        AIC(poly_order1) = 2*sum(abs(d_est - d_fit(poly_order1,:)).^2) + 2*N*poly_order/(N-1 - poly_order);           
+        AIC(poly_order1) = 2*sum(abs(d_est - d_fit(poly_order1,:)).^2) + 2*N*poly_order/(N-1 - poly_order);
     end
-     
+    
     [~,i2] = min(AIC);
     
+    d_est_origin = d_est;
     d_est = d_fit(i2,:);
     chosen_order = Model_Order_array(i2);
+    
+    %% Shuai Plot the results showing the estimation details
+%     figure;
+%     yyaxis left;
+%     plot(x1, 'm');
+%     ylabel('Signal Amplitude');
+%     yyaxis right;
+%     plot(d_est_origin, 'r');
+%     hold on;
+%     plot(d_fit(2, :), 'k');
+%     ylabel('Delay (sample)');
+%     
+%     xlabel('Sample index');
+%     legend("Signal", "Estimated Delay", "Polynomial fitting");
 end
+
+% figure;
+% plot(index_array{1}, 'r');
+% hold on;
+% plot(index_array{end}, 'k');
+% ylim([-5, 5]);

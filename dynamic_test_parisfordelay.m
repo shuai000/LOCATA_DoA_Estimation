@@ -27,8 +27,13 @@ label = file_t.data;
 % 8cm
 % index_all = [4 5; 5 7; 6 9; 7 10; 10 11];  
 % 4cm
-index_all = [5 6; 6 7; 7 9; 9 10];  
+% index_all = [5 6; 6 7; 7 9; 9 10];  
+% 64cm
+% index_all = [1 3; 2 7; 3 12; 7 13; 12 14; 13 15; 2 8];
+% centered on 7:
+% index_all = [4 7; 5 7; 6 7; 7 9; 7 10; 7 11];
 
+index_all = [2 7; 4 7; 5 7; 7 10; 7 11; 7 13];
 
 [true_delay, timestamps, audio_array, source, mic_positions, target, h, R, azimuth_truth, elevation_truth] = main2(array_dir, this_array, index_all, field);
 
@@ -105,7 +110,7 @@ delay_estimate = cell(1, N_segment);
 order = cell(1, N_segment);
 
 error_matrix = zeros(N_segment, N_pair);
-
+mean_matrix = zeros(N_segment, N_pair);
 
 for ks=1:N_segment
     
@@ -135,6 +140,8 @@ for k=1:N_segment
     for i=1:N_pair
         current_error = delay_estimate{k}(meta_segment(k).local_index, i) - true_delay(i, meta_segment(k).true_index)';
         error_matrix(k,i) = mean(abs(current_error));
+        
+        mean_matrix(k, i) = mean(true_delay(i, meta_segment(k).true_index));
     end
 end
 
@@ -166,30 +173,30 @@ for k=1:N_segment
     plot(data_segment(k).time, delay_estimate{k}(:, 4), 'r'); hold on;
 end
 
-% subplot 815
-% plot(timestamps, true_delay(5, :), 'k'); hold on;
-% for k=1:N_segment
-%     plot(data_segment(k).time, delay_estimate{k}(:, 5), 'r'); hold on;
-% end
-% ylim([-50, 50]);
-% subplot 816
-% plot(timestamps, true_delay(6, :), 'k'); hold on;
-% for k=1:N_segment
-%     plot(data_segment(k).time, delay_estimate{k}(:, 6), 'r'); hold on;
-% end
+subplot 815
+plot(timestamps, true_delay(5, :), 'k'); hold on;
+for k=1:N_segment
+    plot(data_segment(k).time, delay_estimate{k}(:, 5), 'r'); hold on;
+end
+ylim([-50, 50]);
+subplot 816
+plot(timestamps, true_delay(6, :), 'k'); hold on;
+for k=1:N_segment
+    plot(data_segment(k).time, delay_estimate{k}(:, 6), 'r'); hold on;
+end
 
 % subplot 817
 % plot(timestamps, true_delay(7, :), 'k'); hold on;
 % for k=1:N_segment
 %     plot(data_segment(k).time, delay_estimate{k}(:, 7), 'r'); hold on;
 % end
-% 
+
 % subplot 818
 % plot(timestamps, true_delay(8, :), 'k'); hold on;
 % for k=1:N_segment
 %     plot(data_segment(k).time, delay_estimate{k}(:, 8), 'r'); hold on;
 % end
-% xlabel('Time, $t$, [s]', 'interpreter', 'latex');
+xlabel('Time, $t$, [s]', 'interpreter', 'latex');
 % % %% Location estimation
 % azimuth_estimation = cell(1, N_segment);
 % elevation_estimation = cell(1, N_segment);

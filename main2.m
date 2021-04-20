@@ -1,4 +1,4 @@
-function [true_delay_all, evaluate_time, audio_array, audio_source, mic_positions, target, h_point, R, az_truth, el_truth] = main2(array_dir, this_array, index_all)
+function [true_delay_all, evaluate_time, audio_array, audio_source, mic_positions, target, h_point, R, az_truth, el_truth] = main2(array_dir, this_array, index_all, field)
 
 % applied for dynamic (the source is moving) case
 
@@ -50,8 +50,8 @@ end
 
 h_point = truth.array.position(:, 1);
 R = squeeze(truth.array.rotation(:, 1, :));
-az_truth = truth.source.talker5.azimuth;
-el_truth = truth.source.talker5.elevation;
+az_truth = truth.source.(field).azimuth;
+el_truth = truth.source.(field).elevation;
 
 
 target = position_source.data;
@@ -63,7 +63,7 @@ in_localization.mic_geom = truth.array.mic; % microphone position x, y, z
 mic_positions = squeeze(truth.array.mic(:, 1, :));
 
 % compute distance
-source_location_all = truth.source.talker5.position;
+source_location_all = truth.source.(field).position;
 mic_location = squeeze(in_localization.mic_geom(:, 1, :));
 ni = size(index_all, 1);
 ns = size(source_location_all, 2);

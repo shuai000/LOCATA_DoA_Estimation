@@ -10,9 +10,9 @@ my_step = .1;
 min_error = 1000000;
 error_array = [];
 
-for xc = -1.5:my_step:1.5
-    for yc = -2:my_step:2
-        for zc = 0:my_step:1.6
+for xc = -3:my_step:3
+    for yc = -.1:my_step:4
+        for zc = 1.3:my_step:1.75
             source_cartisan = [xc, yc, zc]';
             % compute distance
             dis_ms = sqrt(sum((source_cartisan - mic_positions) .^ 2, 1));

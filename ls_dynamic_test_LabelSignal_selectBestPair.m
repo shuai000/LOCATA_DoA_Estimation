@@ -176,6 +176,13 @@ for mi=1:3
     end
     ylim([-50, 50]);
     
+    subplot 616
+    plot(timestamps, true_delay(6, :), 'k'); hold on;
+    for k=1:N_segment
+        plot(data_segment(k).time, delay_estimate{k}(:, 6), 'r'); hold on;
+    end
+    ylim([-50, 50]);
+    
     % %% Location estimation
     azimuth_estimation = cell(1, N_segment);
     elevation_estimation = cell(1, N_segment);
@@ -190,7 +197,7 @@ for mi=1:3
         
         for index=1:Ne
             tau = delay_estimate{k}(meta_segment(k).local_index(index), :)' ./ 48000;
-            current_azimuth(index) = asin((d\tau)*343)*180/pi;  
+            current_azimuth(index) = asin((d\tau)*343)*180/pi;
         end
         azimuth_estimation{k} = current_azimuth;
     end
